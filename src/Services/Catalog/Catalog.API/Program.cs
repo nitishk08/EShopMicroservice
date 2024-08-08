@@ -23,41 +23,18 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>(); // use this one either below one
 
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("Database")!);
+
 var app = builder.Build();
 
 // Configure the Http request pipeline
 app.MapCarter();
 
-//Global Exception handle
-//app.UseExceptionHandler(exceptionHandlerApp =>
-//{
-//    exceptionHandlerApp.Run(async context =>
-//    {
-//        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-//        if (exception is null)
-//        {
-//            return;
-//        }
-
-//        var problemDetails = new ProblemDetails
-//        {
-//            Title = exception.Message,
-//            Status = StatusCodes.Status500InternalServerError,
-//            Detail = exception.StackTrace
-//        };
-
-//        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-//        logger.LogError(exception, exception.Message);
-
-//        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-//        context.Response.ContentType = "application/problem+json";
-
-//        await context.Response.WriteAsJsonAsync(problemDetails);
-
-//    });
-//});
-
-// In Place
-
 app.UseExceptionHandler(options => { }); // If you are going to use just above commented code then remove this line
+app.UseHealthChecks("/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    });
 app.Run();
