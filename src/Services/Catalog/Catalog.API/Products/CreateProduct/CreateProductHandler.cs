@@ -1,4 +1,6 @@
 ﻿
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 namespace Catalog.API.Products.CreateProduct
 {
     /// <summary>
@@ -7,9 +9,9 @@ namespace Catalog.API.Products.CreateProduct
     /// <param name="Name"></param>
     /// <param name="Category"></param>
     /// <param name="Description"></param>
-    /// <param name="ImageUrl"></param>
+    /// <param name="ImageFile"></param>
     /// <param name="Price"></param>
-    public record CreateProductCommand(string Name, List<string> Category, string Description, string ImageUrl, decimal Price)
+    public record CreateProductCommand(string Name, List<string> Category, string Description, string ImageFile, decimal Price)
         : ICommand<CreateProductResult>;
 
     /// <summary>
@@ -17,7 +19,19 @@ namespace Catalog.API.Products.CreateProduct
     /// </summary>
     /// <param name="Id"></param>
     public record CreateProductResult(Guid Id);
-    public class CreateProductHandler(IDocumentSession session) : ICommandHandler<CreateProductCommand, CreateProductResult>
+
+    public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+    {
+        public CreateProductCommandValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required");
+            RuleFor(x => x.Category).NotEmpty().WithMessage("Category is required");
+            RuleFor(x => x.ImageFile).NotEmpty().WithMessage("ImageFile is required");
+            RuleFor(x => x.Price).NotEmpty().WithMessage("Price must be greater than 0");
+        }
+    }
+    public class CreateProductCommandHandler(IDocumentSession session, ILogger<CreateProductCommandHandler> logger)
+        : ICommandHandler<CreateProductCommand, CreateProductResult>
     {
         public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
         {
@@ -25,13 +39,14 @@ namespace Catalog.API.Products.CreateProduct
 
             // Save to database
             // return CreateProductResult result
+            logger.LogInformation("CreateProductCommandHandler.Handle called with {@Command}", command);
 
             var product = new Product
             {
                 Name = command.Name,
                 Category = command.Category,
                 Description = command.Description,
-                ImageUrl = command.ImageUrl,
+                ImageFile = command.ImageFile,
                 Price = command.Price,
             };
 
