@@ -24,12 +24,9 @@ namespace Catalog.API.Products.UpdateProduct
     public class UpdateProductCommandHandler : ICommandHandler<UpdateProductCommand, UpdateProductResult>
     {
         private readonly IDocumentSession _documentSession;
-        private readonly ILogger<UpdateProductCommandHandler> _logger;
-
-        public UpdateProductCommandHandler(IDocumentSession documentSession, ILogger<UpdateProductCommandHandler> logger)
+        public UpdateProductCommandHandler(IDocumentSession documentSession)
         {
             _documentSession = documentSession;
-            _logger = logger;
         }
         public async Task<UpdateProductResult> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
         {
@@ -38,7 +35,7 @@ namespace Catalog.API.Products.UpdateProduct
                 var product = await _documentSession.LoadAsync<Product>(command.Id, cancellationToken);
                 if (product is null)
                 { 
-                    throw new ProductNotFoundException($"Product with ID {command.Id} not found.");
+                    throw new ProductNotFoundException(command.Id);
                 }
 
                 product.Name = command.Name;
@@ -52,14 +49,12 @@ namespace Catalog.API.Products.UpdateProduct
 
                 return new UpdateProductResult(true);
             }
-            catch (ProductNotFoundException ex)
+            catch (ProductNotFoundException)
             {
-                _logger.LogError(ex, ex.Message);
                 return new UpdateProductResult(false);
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
-                _logger.LogError(ex, "An error occured while updating the product");
                 return new UpdateProductResult(false);
             }
         }

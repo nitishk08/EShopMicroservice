@@ -6,15 +6,12 @@ namespace Catalog.API.Products.GetProducts
     internal class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, GetProductsResult>
     {
         private IDocumentSession _session;
-        ILogger<GetProductsQueryHandler> _logger;
-        public GetProductsQueryHandler(IDocumentSession session, ILogger<GetProductsQueryHandler> logger) 
+        public GetProductsQueryHandler(IDocumentSession session) 
         { 
             _session = session;
-            _logger = logger;
         }
         public async Task<GetProductsResult> Handle(GetProductsQuery query, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("GetProductsQueryHandler.Handle called with {@Query}", query);
             var products = await _session.Query<Product>().ToListAsync(cancellationToken);
             return new GetProductsResult(products);
         }
