@@ -1,6 +1,4 @@
 ﻿
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
-
 namespace Catalog.API.Products.CreateProduct
 {
     /// <summary>
